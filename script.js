@@ -9,8 +9,11 @@ const scoreEl = document.getElementById("score");
 const eatSound = document.getElementById("eatSound");
 const crashSound = document.getElementById("crashSound");
 
-const box = 20;
-const canvasSize = 400;
+let box = 20;
+let canvasWidth = window.innerWidth;
+let canvasHeight = window.innerHeight;
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
 
 let snake = [];
 let food = {};
@@ -22,13 +25,13 @@ let paused = false;
 
 function spawnFood() {
   return {
-    x: Math.floor(Math.random() * (canvasSize / box)) * box,
-    y: Math.floor(Math.random() * (canvasSize / box)) * box,
+    x: Math.floor(Math.random() * (canvasWidth / box)) * box,
+    y: Math.floor(Math.random() * (canvasHeight / box)) * box,
   };
 }
 
 function resetGameState() {
-  snake = [{ x: 160, y: 200 }];
+  snake = [{ x: Math.floor(canvasWidth / 2 / box) * box, y: Math.floor(canvasHeight / 2 / box) * box }];
   direction = "RIGHT";
   food = spawnFood();
   score = 0;
@@ -40,29 +43,29 @@ function resetGameState() {
 function drawGame() {
   if (paused) return;
 
-  ctx.clearRect(0, 0, canvasSize, canvasSize);
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-  // 畫蛇
+  // Draw snake
   snake.forEach((s, i) => {
     ctx.fillStyle = i === 0 ? "#0f0" : "#3f3";
     ctx.fillRect(s.x, s.y, box, box);
   });
 
-  // 畫食物
+  // Draw food
   ctx.fillStyle = "#f00";
   ctx.fillRect(food.x, food.y, box, box);
 
-  // 移動
+  // Move snake
   let head = { ...snake[0] };
   if (direction === "LEFT") head.x -= box;
   if (direction === "UP") head.y -= box;
   if (direction === "RIGHT") head.x += box;
   if (direction === "DOWN") head.y += box;
 
-  // 撞牆或自己
+  // Check collision with walls or itself
   if (
-    head.x < 0 || head.x >= canvasSize ||
-    head.y < 0 || head.y >= canvasSize ||
+    head.x < 0 || head.x >= canvasWidth ||
+    head.y < 0 || head.y >= canvasHeight ||
     snake.some(s => s.x === head.x && s.y === head.y)
   ) {
     crashSound.play();
@@ -74,14 +77,14 @@ function drawGame() {
 
   snake.unshift(head);
 
-  // 吃食物
+  // Check if snake eats food
   if (head.x === food.x && head.y === food.y) {
     eatSound.play();
     score++;
     scoreEl.textContent = "分數：" + score;
     food = spawnFood();
 
-    // 增加速度
+    // Increase speed
     if (score % 5 === 0 && speed > 50) {
       speed -= 10;
       clearInterval(gameInterval);
@@ -129,17 +132,15 @@ function changeDirection(e) {
   else if (key === "ArrowDown" && direction !== "UP") direction = "DOWN";
 }
 
-// 事件監聽
+// Event listeners
 document.addEventListener("keydown", changeDirection);
 startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", restartGame);
 pauseBtn.addEventListener("click", togglePause);
 
-// 防止方向鍵捲動頁面
+// Prevent page scroll on arrow key press
 window.addEventListener("keydown", e => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     e.preventDefault();
   }
 });
-
- 
